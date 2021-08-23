@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>碎片收容计划 Debris-Containment-Project</title>
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.2.0/dist/av-min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/jdenticon@2.2.0" async></script>
+    <script src="https://unpkg.com/scrollreveal"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.8.0/css/bulma.min.css' />
+    <script type="text/javascript" src="http://cdn.repository.webfont.com/wwwroot/js/wf/youziku.api.min.js"></script>
+    <script type="text/javascript">
+        $webfont.load("body", "f5b154549f044581ac2641efddc2576e", "TSSunOld");
+        /*$webfont.load("#id1,.class1,h1", "f5b154549f044581ac2641efddc2576e", "TSSunOld");*/
+        /*．．．*/
+        $webfont.draw();
+    </script>
+    <style>
+        #main-content {
+            margin-top: 30px;
+        }
+
+        .is-primar {
+            background-color: #41B883 !important;
+            color: honeydew !important;
+        }
+
+        #IDhex {
+            margin-top: 4px;
+            font-size: 8px;
+            color: rgb(177, 177, 177);
+        }
+
+        #foritissoon {
+            position: absolute;
+            left: 50%;
+            margin-left: -100px;
+            top: 220px;
+            font-size: 12px;
+            color: grey;
+        }
+
+        .image.is-24x24 {
+            height: 20px;
+        }
+
+        #bulTag {
+            position: relative;
+            left: -10px;
+        }
+
+        .image img {
+            /* height: 24px; */
+            height: 100%;
+            width: auto;
+            margin-right: 0;
+
+        }
+
+        #inputCol>.container {
+            margin-left: 10px;
+        }
+
+        #inputCol>.container>input {
+            position: relative;
+            top: 15px;
+            margin-bottom: 30px;
+        }
+
+        .modal-card-body {
+            border-radius: 10px;
+        }
+
+        #timeDisp {
+            margin-left: 0.8em;
+            color: grey;
+            font-size: 0.8em;
+        }
+
+        .panel-block>.box {
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
+        .input:focus,
+        .textarea:focus,
+        .select select:focus,
+        .is-focused.input,
+        .is-focused.textarea,
+        .select select.is-focused,
+        .input:active,
+        .textarea:active,
+        .select select:active,
+        .is-active.input,
+        .is-active.textarea,
+        .select select.is-active {
+            border-color: #00D1B2;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+
+        <div class="modal" :class="{'is-active':userNamePanelFlag}">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <section class="modal-card-body ">
+                    <div class="columns is-gapless is-mobile is-multiline">
+                        <div class="column is-5">
+                            <svg id="identicon" width="128" height="128" :data-jdenticon-value="userName"></svg>
+                        </div>
+                        <div class="column" id="inputCol">
+                            <div class="container is-pulled-right is-half">
+                                <input class="input" type="text" v-model="userName" @input="inputFunc"
+                                    placeholder="输入你的ID">
+
+                                <button class="button is-success is-half" @click="determineModal">确定</button>
+                                <button class="button is-half" @click="closeModal">取消</button>
+                                <p id="IDhex">✨每个ID会由其哈希值生成全宇宙唯一的头像</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+            </div>
+        </div>
+
+
+
+
+        <nav class="panel is-shadowless is-primary">
+
+            <p class="panel-heading has-text-centered">
+                DCP-碎片收容装置 v0.1
+            </p>
+
+            <div class="panel-block is-block has-text-centered">
+                <p id="foritissoon">For it is soon cut off and we fly away.</p>
+
+                <img src="http://pic.drafff.art//drafff/20200128020242.gif" alt="">
+            </div>
+
+            <div class="panel-block">
+                <p class="control">
+                    <input class="input " @keyup.enter="submit" type="text" placeholder="说点什么吧~" v-model="msg">
+                </p>
+            </div>
+            <div class="panel-block">
+                <button class="button is-primary is-outlined is-fullwidth" @click="submit">
+                    发射
+                </button>
+            </div>
+
+
+            <div class="panel-block is-inline is-mobile is-c" id="main-content">
+
+
+                <div class="box" v-for="item in list" :key="item.time">
+                    <article class="media">
+                        <div class="media-left">
+                            <figure class="image is-64x64">
+                                <svg width="64" height="64" :data-jdenticon-value="item.user"></svg>
+                            </figure>
+                        </div>
+                        <div class="media-content">
+                            <div class="content">
+                                <p>
+                                    <strong>{{item.user}}</strong>
+                                    <small id="timeDisp">{{item.time|dateFormat}}</small>
+                                    <br>
+                                    {{item.content}}
+                                </p>
+                            </div>
+                            <nav class="level is-mobile">
+                                <div class="level-left">
+                                    <a class="level-item">
+                                        <span class="icon is-small"><i class="fa fa-reply"></i></span>
+                                    </a>
+                                    <a class="level-item">
+                                        <span class="icon is-small"><i class="fa fa-retweet"></i></span>
+                                    </a>
+                                    <a class="level-item">
+                                        <span class="icon is-small"><i class="fa fa-heart"></i></span>
+                                    </a>
+                                </div>
+                            </nav>
+                        </div>
+                    </article>
+                </div>
+
+
+
+
+                <div class="panel-block is-inline is-fullwidth">
+                    <div class="container is-fullwidth">
+                        <div class=" has-text-centered">
+                            <small>堆栈见底&lt;/&gt;</small>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </nav>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="content has-text-centered">
+                    <p>
+                        <div class="columns is-mobile">
+                            <div class="column">
+                                <div class="tags has-addons">
+                                    <span class="tag"><svg t="1580136302889" class="icon" viewBox="0 0 1024 1024"
+                                            version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="662" width="200"
+                                            height="200">
+                                            <path
+                                                d="M615.6 123.6h165.5L512 589.7 242.9 123.6H63.5L512 900.4l448.5-776.9z"
+                                                fill="#41B883" p-id="663"></path>
+                                            <path d="M781.1 123.6H615.6L512 303 408.4 123.6H242.9L512 589.7z"
+                                                fill="#34495E" p-id="664"></path>
+                                        </svg></span>
+                                    <a class="tag is-primar" href="https://cn.vuejs.org/">vue.js</a>
+                                </div>
+                            </div>
+                            <div class="column">
+                                <div class="tags has-addons">
+                                    <span class="tag">
+                                        <div class="image is-24x24">
+                                            <img src="http://pic.drafff.art//drafff/20200128013357.png">
+                                        </div>
+                                    </span>
+                                    <a id="bulTag" class="tag is-primary" href="https://bulma.io/">Bulma.css</a>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <p>
+                            Copyright © 2020 <a href="http://drafff.art" class="is-link">Drafff</a>
+                        </p>
+                        <p><small>Picture by <a href="https://thedotisblack.com/">thedotisblack</a></small></p>
+
+                </div>
+            </div>
+        </footer>
+
+
+
+    </div>
+    <script>
+        // let leanCloud = axios.create({
+        //     baseURL: 'https://api.drafff.art',
+        //     timeout: 1000,
+        //     headers: [{
+        //         "key": "X-LC-Id",
+        //         "value": "QXhvD86fYd73CdVwEg9AGf9q-gzGzoHsz",
+        //         "enabled": true
+        //     }, {
+        //         "key": "X-LC-Key",
+        //         "value": "5wsXnieYEUE9MtG91yumE9Mi",
+        //         "enabled": true
+        //     }, {
+        //         "key": "Content-Type",
+        //         "value": "application/json",
+        //         "enabled": true
+        //     }]
+        // });
+
+        // leanCloud.get('/1.1/classes/dcp').then(_=>{
+        //     console.log(_.data)
+        // })
+
+        AV.init({
+            appId: "egxNwvR84obSXXwtQBsWeCch-MdYXbMMI",
+            appKey: "pUwOuqFOgLBjdsrKUn1aqeDL",
+            serverURLs: "https://api.drafff.art"
+        });
+      // 构建对象
+        
+
+        // 为属性赋值
+        // dcp.set('content', '马拉松报名');
+        // dcp.set('user', "ss");
+
+        // // 将对象保存到云端
+        // dcp.save().then(function (dcp) {
+        //     // 成功保存之后，执行其他逻辑
+        //     console.log('保存成功。objectId：' + dcp.id);
+        // }, function (error) {
+        //     // 异常处理
+        // });
+
+        window.jdenticon_config = {
+            hues: [171],
+            lightness: {
+                color: [0.4, 0.8],
+                grayscale: [0.3, 0.9]
+            },
+            saturation: {
+                color: 0.5,
+                grayscale: 0.2
+            },
+            backColor: "#fff",
+            padding: 0.08,
+            replaceMode: "observe"
+        };
+
+        Vue.filter('dateFormat', function (date) {
+            ct = new Date()
+            pt = new Date(date);
+            dt = ct.getTime() - pt.getTime()
+            let y = pt.getFullYear();
+            let m = (pt.getMonth() + 1).toString();
+            let d = pt.getDate();
+            let h = pt.getHours();
+            let min = pt.getMinutes().toString().padStart(2, "0");
+            //计算出相差天数
+            let days = Math.floor(dt / (24 * 3600 * 1000))
+            //计算出小时数
+            let leave1 = dt % (24 * 3600 * 1000) //计算天数后剩余的毫秒数
+            let hours = Math.floor(leave1 / (3600 * 1000))
+            //计算相差分钟数
+            let leave2 = leave1 % (3600 * 1000) //计算小时数后剩余的毫秒数
+            let minutes = Math.floor(leave2 / (60 * 1000))
+            //计算相差秒数
+            let leave3 = leave2 % (60 * 1000) //计算分钟数后剩余的毫秒数
+            let seconds = Math.round(leave3 / 1000)
+            if (days < 1) {
+                if (seconds == 0) {
+                    return "刚刚"
+                } else if (hours < 1 && minutes < 1) {
+                    return `${seconds} 秒前`
+                } else if (hours < 1 && minutes >= 1) {
+                    return `${minutes} 分钟前`
+                } else {
+                    return `今天 ${h}:${min}`
+                }
+            } else {
+                if (y === ct.getFullYear()) {
+                    return `${m}月${d}日 ${h}:${min}`
+                } else {
+                    return `${y}年${m}月${d}日 `
+                }
+            }
+
+        })
+
+        var vm = new Vue({
+            el: '#app',
+            data: {
+                dcp :new AV.Object('dcp'),
+                query: new AV.Query('dcp'),
+                userNamePanelFlag: false,
+                userName: "",
+                msg: "",
+                list: []
+            },
+            methods: {
+                determineModal() {
+                    if (this.userName == "") {
+                        alert("一定要有个ID")
+                        return
+                    }
+                    this.userNamePanelFlag = false;
+
+                },
+                inputFunc() {
+                    jdenticon.update("#identicon", this.userName);
+                },
+                closeModal() {
+                    this.userNamePanelFlag = false;
+                    this.userName = "";
+                },
+                submit() {
+                    if (this.userName === "") {
+                        this.userNamePanelFlag = true
+                        return
+                    }
+                    if (this.msg === "") {
+                        alert("有了内容才可以发射")
+                        return
+                    }
+
+                    this.dcp.set('user', this.userName);
+                    this.dcp.set('time', new Date());
+                    this.dcp.set('content', this.msg);
+
+                    // 将对象保存到云端
+                    this.dcp.save().then(function (dcp) {
+                        // 成功保存之后，执行其他逻辑
+                        console.log('保存成功。objectId：' + dcp.id);
+                    }, function (error) {
+                        // 异常处理
+                        console.log(error)
+                    });
+
+                    this.list.unshift({
+                        time: Date.now(),
+                        user: this.userName,
+                        content: this.msg
+                    })
+                    this.msg = ""
+
+
+                }
+            },
+            created() {
+                // console.log(JSON.stringify(this.list))
+                this.query.find().then(_ => {
+                    // console.log(_)
+                    for (item of _) {
+                        this.list.unshift(item._serverData)
+                        // console.log(item._serverData)
+                    }
+                
+                })
+                this.query.ascending('createdAt');
+            },
+
+            updated() {
+
+                jdenticon();
+                ScrollReveal().reveal('.box', {
+                    delay: 200
+                });
+
+
+
+            },
+            mounted() {
+                jdenticon();
+                ScrollReveal().reveal('.box', {
+                    delay: 200
+                });
+
+            }
+        });
+        Vue.config.devtools = true
+    </script>
+</body>
+
+</html>
